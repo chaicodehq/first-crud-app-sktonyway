@@ -9,6 +9,9 @@ import { Todo } from "../models/todo.model.js";
 export async function createTodo(req, res, next) {
   try {
     // Your code here
+    const { title, completed, priority, tags, dueDate } = req.body;
+    const todo = await Todo.create(req.body)
+    return res.status(201).json(todo)
   } catch (error) {
     next(error);
   }
@@ -23,6 +26,8 @@ export async function createTodo(req, res, next) {
 export async function listTodos(req, res, next) {
   try {
     // Your code here
+    const { page, limit, completed, priority, search } = req.params;
+
   } catch (error) {
     next(error);
   }
@@ -35,6 +40,10 @@ export async function listTodos(req, res, next) {
 export async function getTodo(req, res, next) {
   try {
     // Your code here
+    let id = req.params.id;
+    const todo = await Todo.findById(id);
+    if (!todo) { return res.status(404).json({ error: { message: "Not found" } }) }
+    return res.status(200).json(todo)
   } catch (error) {
     next(error);
   }
@@ -48,6 +57,10 @@ export async function getTodo(req, res, next) {
 export async function updateTodo(req, res, next) {
   try {
     // Your code here
+    const id = req.params.id;
+    const todo = await Todo.findByIdAndUpdate(id, req.body, { new: true, runValidators: true })
+    if (!todo) { return res.status(404).json({ error: { message: "Not found" } }) }
+    return res.status(200).json(todo)
   } catch (error) {
     next(error);
   }
@@ -61,6 +74,13 @@ export async function updateTodo(req, res, next) {
 export async function toggleTodo(req, res, next) {
   try {
     // Your code here
+    const id = req.params.id;
+    const todo = await Todo.findById(id)
+    if (!todo) { return res.status(404).json({ error: { message: "Not found" } }) }
+
+    todo.completed = !todo.completed
+    await todo.save()
+    res.status(200).json(todo)
   } catch (error) {
     next(error);
   }
@@ -74,6 +94,10 @@ export async function toggleTodo(req, res, next) {
 export async function deleteTodo(req, res, next) {
   try {
     // Your code here
+    const id = req.params.id;
+    const todo = await Todo.findByIdAndDelete(id)
+    if (!todo) { return res.status(404).json({ error: { message: "Not found" } }) }
+    return res.status(204).send()
   } catch (error) {
     next(error);
   }
