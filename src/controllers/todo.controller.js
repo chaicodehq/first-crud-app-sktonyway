@@ -26,8 +26,40 @@ export async function createTodo(req, res, next) {
 export async function listTodos(req, res, next) {
   try {
     // Your code here
-    const { page, limit, completed, priority, search } = req.params;
+    const { page = 1, limit = 10, completed, priority, search } = req.query;
+    const pageNo = parseInt(page)
+    const limitNo = parseInt(limit)
+    let filter = {};
 
+    // ✅ completed filter
+    if (completed !== undefined) {
+      filter.completed = completed === "true";
+    }
+
+    // ✅ priority filter
+    if (priority) {
+      filter.priority = priority;
+    }
+
+    // ✅ search filter (case-insensitive)
+    if (search) {
+      filter.title = { $regex: search, $options: "i" };
+    }
+
+    const notes = await Todo.find(filter)
+    .sort({ createdAt: -1 })
+      .skip((pageNo - 1) * limitNo)
+      .limit(limitNo);
+    const total2 = await Todo.countDocuments(filter);
+
+    const page2 = pageNo;
+    const limit2 = limitNo;
+    const pages2 = Math.ceil(total2 / limit2)
+
+
+    res.status(200).json({ data: notes, meta: { total: total2, page: page2, limit: limit2, pages: pages2 } })
+
+// Used AI here, it was out of scope 
   } catch (error) {
     next(error);
   }
